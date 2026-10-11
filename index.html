@@ -5226,11 +5226,7 @@ function saveApiKeys() {
 
 // Pre-seed API keys on first load (can be overridden in Settings)
 (function() {
-  try {
-    if (!localStorage.getItem('aviationstack_key')) localStorage.setItem('aviationstack_key','53f4dff6e02e66bff8ca77cb64cf3c40');
-    if (!localStorage.getItem('rapidapi_key'))      localStorage.setItem('rapidapi_key','d2c4265b38mshf1e18e605d6b413p1d9290jsn2b035f325f2b');
-    if (!localStorage.getItem('gemini_key'))        localStorage.setItem('gemini_key','AQ.Ab8RN6KaWp4TSYWbPAx6OBIzVsGRST330SAWyIS6LKegrzV52Q');
-  } catch(e) {}
+  // API keys are entered by the user via Settings (⚙) — not hardcoded here
 })();
 
 // Initialize status badges on page load
