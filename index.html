@@ -5293,31 +5293,34 @@ async function handleSearch() {
   _syncCompareHeader();
 
   const cardsEl = document.getElementById('flightCards');
-  if (cardsEl) cardsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;"><div style="font-size:1.8rem;margin-bottom:12px;">🔍</div><div style="font-weight:700;color:var(--fg);margin-bottom:6px;">Fetching live flights…</div><div style="font-size:.82rem;color:var(--fg-muted);">Checking AviationStack &amp; AeroDataBox</div></div>';
+
+  // Show mock flights immediately so UI is never empty
+  const mockParsed = _getMockFlights(from || 'BOM', to || 'DEL', dep, pax);
+  mockParsed[0].best = true;
+  renderFlightCards(mockParsed);
 
   let parsed = null;
 
   // Try AviationStack first (returns currently-active flights)
-  const asFlights = await searchAviationStackFlights(from || 'DEL', to, dep, pax);
-  if (asFlights && asFlights.length > 0) {
-    parsed = asFlights.map((f, i) => parseAviationStackFlight(f, pax, i));
-  }
+  try {
+    const asFlights = await searchAviationStackFlights(from || 'DEL', to, dep, pax);
+    if (asFlights && asFlights.length > 0) {
+      parsed = asFlights.map((f, i) => parseAviationStackFlight(f, pax, i));
+    }
+  } catch(e) {}
 
   // Try AeroDataBox (returns scheduled departures for any date)
   if (!parsed || parsed.length === 0) {
-    const adbFlights = await searchAeroDataBoxRoute(from || 'DEL', to, dep);
-    if (adbFlights && adbFlights.length > 0) {
-      parsed = adbFlights.map((f, i) => parseAeroDataBoxFlight(f, pax, i));
-    }
+    try {
+      const adbFlights = await searchAeroDataBoxRoute(from || 'DEL', to, dep);
+      if (adbFlights && adbFlights.length > 0) {
+        parsed = adbFlights.map((f, i) => parseAeroDataBoxFlight(f, pax, i));
+      }
+    } catch(e) {}
   }
 
+  // Replace mock with real data only if we got live results
   if (parsed && parsed.length > 0) {
-    const cheapest = parsed.reduce((a,b) => a.total < b.total ? a : b);
-    cheapest.best = true;
-    renderFlightCards(parsed);
-  } else {
-    // Show mock demo flights so the UI is always populated
-    parsed = _getMockFlights(from || 'BOM', to || 'DEL', dep, pax);
     const cheapest = parsed.reduce((a,b) => a.total < b.total ? a : b);
     cheapest.best = true;
     renderFlightCards(parsed);
